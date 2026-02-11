@@ -8,4 +8,10 @@ Repository for delivering course workshops and labs.
 ## Content
 | Week | Description | Link |
 | :--- | :--- | :--- |
-| Week 1 | Complete the guide for installing and running a REST API with Node.js, Express, and MongoDB | [View folder](./week-1) |
+| Week 1 | **Introduction to Node.js & Express:** Initial server setup and environment configuration. | [View folder](./week-1) |
+| Week 2 | **Full CRUD & MongoDB Atlas:** Implementation of a REST API with persistent storage in the cloud. | [View folder](./week-2) |
+
+## Tech Stack
+* **Backend:** Node.js, Express
+* **Database:** MongoDB Atlas (Mongoose)
+* **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
