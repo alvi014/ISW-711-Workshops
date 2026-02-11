@@ -1,7 +1,8 @@
 # Web Environment Programming II (ISW-711)
 Repository for delivering course workshops and labs.
 
-## Student Information
+## Course Information
+* **Instructor:** [Bladimir Arroyo](https://github.com/barroyo)
 * **Student Name:** Alvaro Victor Zamora
 * **Semester:** 2026/1st semester
 
