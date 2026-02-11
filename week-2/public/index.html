@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Management - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Course Management System</h1>
+        <div class="actions">
+            <a href="create-course.html" class="btn btn-primary">Add New Course</a>
+        </div>
+        <table id="courseTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Credits</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadCourses() {
+            const res = await fetch('/course');
+            const courses = await res.json();
+            const tbody = document.querySelector('#courseTable tbody');
+            tbody.innerHTML = '';
+            
+            courses.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.name}</td>
+                        <td>${c.credits}</td>
+                        <td>
+                            <button class="btn btn-update" onclick="updateCourse('${c._id}')">Update</button>
+                            <button class="btn btn-delete" onclick="deleteCourse('${c._id}')">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function updateCourse(id) {
+            const newCredits = prompt("Enter new credits for this course:");
+            if (newCredits) {
+                await fetch(`/course/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credits: parseInt(newCredits) })
+                });
+                loadCourses(); 
+            }
+        }
+
+        async function deleteCourse(id) {
+            if (confirm('Are you sure?')) {
+                await fetch(`/course/${id}`, { method: 'DELETE' });
+                loadCourses();
+            }
+        }
+
+        
+        loadCourses();
+    </script>
+</body>
+
+</html>

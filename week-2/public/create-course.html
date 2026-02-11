@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Course</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Register New Course</h2>
+        <form id="courseForm">
+            <input type="text" id="name" placeholder="Course Name" required>
+            <input type="number" id="credits" placeholder="Credits" required>
+            <button type="submit" class="btn btn-primary">Save Course</button>
+            <a href="index.html">Back to List</a>
+        </form>
+    </div>
+    <script>
+        document.getElementById('courseForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('name').value,
+                credits: document.getElementById('credits').value
+            };
+            await fetch('/course', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            window.location.href = 'index.html';
+        };
+    </script>
+</body>
+</html>
