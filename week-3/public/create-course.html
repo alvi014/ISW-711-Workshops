@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Course</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Register New Course</h2>
+        <form id="courseForm">
+            <input type="text" id="nombre" placeholder="Nombre del Curso" required>
+            <input type="text" id="codigo" placeholder="Código del Curso" required>
+            <textarea id="descripcion" placeholder="Descripción" required></textarea>
+            
+            <label for="professorSelect">Seleccionar Profesor:</label>
+            <select id="professorSelect" required>
+                <option value="">Cargando profesores...</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Save Course</button>
+            <a href="index.html">Back to List</a>
+        </form>
+    </div>
+
+    <script>
+        // Cargar profesores al abrir la página
+        async function loadProfessorsToSelect() {
+            try {
+                const res = await fetch('http://localhost:4000/professors');
+                const professors = await res.json();
+                const select = document.getElementById('professorSelect');
+
+                if (professors.length === 0) {
+                    select.innerHTML = '<option value="">No hay profesores. Créalos primero.</option>';
+                    return;
+                }
+
+                select.innerHTML = professors.map(p =>
+                    `<option value="${p._id}">${p.nombre} ${p.apellidos}</option>`
+                ).join('');
+            } catch (error) {
+                console.error("Error cargando profesores:", error);
+            }
+        }
+
+        document.getElementById('courseForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+        
+            // Crear objeto con los datos del formulario
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                codigo: document.getElementById('codigo').value,
+                descripcion: document.getElementById('descripcion').value,
+                professorId: document.getElementById('professorSelect').value 
+            };
+
+
+            await fetch('http://localhost:4000/courses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            window.location.href = 'index.html';
+        };
+
+        loadProfessorsToSelect();
+    </script>
+</body>
+</html>

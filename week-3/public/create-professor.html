@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Professor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Register New Professor</h2>
+        <form id="professorForm">
+            <input type="text" id="nombre" placeholder="Nombre" required>
+            <input type="text" id="apellidos" placeholder="Apellidos" required>
+            <input type="text" id="cedula" placeholder="Cédula" required>
+            <input type="number" id="edad" placeholder="Edad" required>
+            
+            <button type="submit" class="btn btn-primary">Save Professor</button>
+            <a href="index.html">Back to List</a>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('professorForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                apellidos: document.getElementById('apellidos').value,
+                cedula: document.getElementById('cedula').value,
+                edad: document.getElementById('edad').value
+            };
+            
+            const response = await fetch('http://localhost:4000/professors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Professor saved successfully!');
+                window.location.href = 'index.html';
+            } else {
+                alert('Error saving professor. Check if ID is duplicate.');
+            }
+        };
+    </script>
+</body>
+</html>
