@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-container { max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .toggle-link { color: blue; cursor: pointer; text-decoration: underline; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div id="loginSection">
+            <h2>Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email" required><br><br>
+            <input type="password" id="loginPass" placeholder="Password" required><br><br>
+            <button class="btn btn-primary" onclick="login()">Enter</button>
+            <p>Don't have an account? <span class="toggle-link" onclick="toggleAuth()">Register here</span></p>
+        </div>
+
+        <div id="registerSection" class="hidden">
+            <h2>Register</h2>
+            <input type="text" id="regName" placeholder="Name"><br><br>
+            <input type="text" id="regLastName" placeholder="Last Name"><br><br>
+            <input type="email" id="regEmail" placeholder="Email"><br><br>
+            <input type="password" id="regPass" placeholder="Password"><br><br>
+            <button class="btn btn-primary" onclick="register()">Create Account</button>
+            <p>Already have an account? <span class="toggle-link" onclick="toggleAuth()">Login here</span></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:4000';
+
+        function toggleAuth() {
+            document.getElementById('loginSection').classList.toggle('hidden');
+            document.getElementById('registerSection').classList.toggle('hidden');
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+
+            const res = await fetch(`${API_URL}/auth/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                sessionStorage.setItem('token', data.token);
+                window.location.href = 'index.html';
+            } else {
+                alert(data.message || "Error al iniciar sesión");
+            }
+        }
+
+        async function register() {
+            const name = document.getElementById('regName').value;
+            const lastName = document.getElementById('regLastName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPass').value;
+
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, lastName, email, password })
+            });
+
+            if (res.ok) {
+                alert("Registro exitoso, ahora inicia sesión");
+                toggleAuth();
+            } else {
+                const data = await res.json();
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

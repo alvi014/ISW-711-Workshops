@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Course</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Register New Course</h2>
+        <form id="courseForm">
+            <input type="text" id="nombre" placeholder="Nombre del Curso" required>
+            <input type="text" id="codigo" placeholder="Código del Curso" required>
+            <textarea id="descripcion" placeholder="Descripción" required></textarea>
+            
+            <label for="professorSelect">Seleccionar Profesor:</label>
+            <select id="professorSelect" required>
+                <option value="">Cargando profesores...</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Save Course</button>
+            <a href="index.html" class="btn" style="background: #ccc; text-decoration: none; display: inline-block; padding: 10px; border-radius: 4px; color: black;">Back to List</a>
+        </form>
+    </div>
+
+    <script>
+        // 1. VERIFICACIÓN DE TOKEN AL INICIO
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        const API_URL = 'http://localhost:4000';
+
+        async function loadProfessorsToSelect() {
+            try {
+                const res = await fetch(`${API_URL}/professors`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const professors = await res.json();
+                const select = document.getElementById('professorSelect');
+
+                if (professors.length === 0) {
+                    select.innerHTML = '<option value="">No hay profesores. Créalos primero.</option>';
+                    return;
+                }
+
+                select.innerHTML = professors.map(p =>
+                    `<option value="${p._id}">${p.nombre} ${p.apellidos}</option>`
+                ).join('');
+            } catch (error) {
+                console.error("Error cargando profesores:", error);
+            }
+        }
+
+        document.getElementById('courseForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                codigo: document.getElementById('codigo').value,
+                descripcion: document.getElementById('descripcion').value,
+                professorId: document.getElementById('professorSelect').value 
+            };
+
+            try {
+                // 2. ENVIAR TOKEN EN EL POST
+                const response = await fetch(`${API_URL}/courses`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Course saved successfully!');
+                    window.location.href = 'index.html';
+                } else {
+                    const errData = await response.json();
+                    alert('Error saving course: ' + (errData.message || 'Unauthorized'));
+                    
+                    if (response.status === 401) {
+                        sessionStorage.clear();
+                        window.location.href = 'login.html';
+                    }
+                }
+            } catch (error) {
+                console.error("Error saving course:", error);
+                alert("Connection error.");
+            }
+        };
+
+        loadProfessorsToSelect();
+    </script>
+</body>
+</html>

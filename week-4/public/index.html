@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Management System - Week 4</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Management System (API Port 4000)</h1>
+            <button class="btn btn-delete" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="actions">
+            <a href="create-professor.html" class="btn btn-primary">Add New Professor</a>
+            <a href="create-course.html" class="btn btn-primary">Add New Course</a>
+        </div>
+
+        <h2>Courses List</h2>
+        <table id="courseTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Professor</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <hr>
+
+        <h2>Professors List</h2>
+        <table id="professorTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>ID (Cédula)</th>
+                    <th>Age</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        //Verificación de token 
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        const API_URL = 'http://localhost:4000';
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+       async function loadData() {
+    try {
+        const token = sessionStorage.getItem('token'); 
+
+        // 1. Cargar Cursos enviando el TOKEN
+        const resCourses = await fetch(`${API_URL}/courses`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const courses = await resCourses.json();
+
+        // VALIDACIÓN
+        if (!Array.isArray(courses)) {
+            console.error("Error de formato o falta de permisos:", courses);
+            return; 
+        }
+
+        const courseTbody = document.querySelector('#courseTable tbody');
+        courseTbody.innerHTML = courses.map(c => `
+            <tr>
+                <td>${c.nombre}</td>
+                <td>${c.codigo}</td>
+                <td>${c.descripcion}</td>
+                <td>${c.professorId ? c.professorId.nombre : '<span style="color:red">Unassigned</span>'}</td>
+                <td>
+                    <button class="btn btn-update" onclick="editCourse('${c._id}')">Edit</button>
+                    <button class="btn btn-delete" onclick="deleteItem('courses', '${c._id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+
+        const resProfs = await fetch(`${API_URL}/professors`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const professors = await resProfs.json();
+
+        if (Array.isArray(professors)) {
+            const profTbody = document.querySelector('#professorTable tbody');
+            profTbody.innerHTML = professors.map(p => `
+                <tr>
+                    <td>${p.nombre} ${p.apellidos}</td>
+                    <td>${p.cedula}</td>
+                    <td>${p.edad}</td>
+                    <td>
+                        <button class="btn btn-update" onclick="editProfessor('${p._id}')">Edit</button>
+                        <button class="btn btn-delete" onclick="deleteItem('professors', '${p._id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (error) {
+        console.error("Error loading data:", error);
+    }
+}
+        // --- ELIMINAR ---
+        async function deleteItem(route, id) {
+            if (confirm('¿Está seguro de que desea eliminar este registro?')) {
+                try {
+                    const response = await fetch(`${API_URL}/${route}/${id}`, { 
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}` 
+                        }
+                    });
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert(result.message);
+                        loadData();
+                    } else {
+                        alert("Error: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Error de conexión con el servidor.");
+                }
+            }
+        }
+
+        // --- EDITAR CURSO  ---
+        async function editCourse(id) {
+            const newNombre = prompt("Nuevo nombre del curso (vacío para no cambiar):");
+            const newCodigo = prompt("Nuevo código del curso (vacío para no cambiar):");
+            const newDesc = prompt("Nueva descripción (vacío para mantener):");
+            const newProfCedula = prompt("Ingrese la CÉDULA del nuevo profesor (vacío para no cambiar):");
+
+            const data = {};
+            if (newNombre && newNombre.trim() !== "") data.nombre = newNombre;
+            if (newCodigo && newCodigo.trim() !== "") data.codigo = newCodigo;
+            if (newDesc && newDesc.trim() !== "") data.descripcion = newDesc;
+            if (newProfCedula && newProfCedula.trim() !== "") data.professorCedula = newProfCedula.trim();
+
+            if (Object.keys(data).length === 0) return;
+
+            try {
+                const response = await fetch(`${API_URL}/courses/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert("¡Curso actualizado con éxito!");
+                    loadData();
+                } else {
+                    const err = await response.json();
+                    alert("Error: " + err.message);
+                }
+            } catch (error) {
+                console.error("Update error:", error);
+                alert("Error de red. Verifique que el servidor esté corriendo.");
+            }
+        }
+
+        // --- EDITAR PROFESOR  ---
+        async function editProfessor(id) {
+            const newNombre = prompt("Nuevo nombre:");
+            const newApellidos = prompt("Nuevos apellidos:");
+            const newEdad = prompt("Nueva edad:");
+
+            const data = {};
+            if (newNombre && newNombre.trim() !== "") data.nombre = newNombre;
+            if (newApellidos && newApellidos.trim() !== "") data.apellidos = newApellidos;
+            if (newEdad && newEdad.trim() !== "") data.edad = parseInt(newEdad);
+
+            if (Object.keys(data).length === 0) return;
+
+            try {
+                const response = await fetch(`${API_URL}/professors/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert("Professor updated successfully!");
+                    loadData();
+                } else {
+                    const err = await response.json();
+                    alert("Error: " + err.message);
+                }
+            } catch (error) {
+                console.error("Update error:", error);
+                alert("Error de red.");
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>
